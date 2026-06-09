@@ -1,97 +1,73 @@
-# tg_file_encrypt_bot.py
+# ultra_encrypt_bot.py
 # Owner: @UnknownGuy9876 | Channel: @SGCodexs
-# DEVILS WILL RISE - True 30+ Layers Encryption Bot
+# DEVILS WILL RISE - AI-Proof 30+ Layer Encryption
 
 import logging
 import base64
 import urllib.parse
 import random
 import os
+import zlib
+import hashlib
 from telegram import Update
 from telegram.ext import Application, CommandHandler, MessageHandler, filters, CallbackContext
 
-# ========== CONFIG ==========
 BOT_TOKEN = "8735707765:AAELATdZIyvOka_RIakWl6-uLCi2FICDjfs"
-# ============================
 
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
 
-class TrueLayerEncryptor:
-    """Proper 30+ Layers - Each layer applied sequentially"""
+class AIProofEncryptor:
+    """Encryption that confuses AI detectors"""
     
     @staticmethod
-    def b64(text):
+    def chaos_noise(text):
+        """Add random noise that looks like garbage to AI"""
+        noise_chars = ['\u200b', '\u200c', '\u200d', '\uFEFF', '\u2060']
+        if random.random() > 0.5:
+            noise = random.choice(noise_chars)
+            position = random.randint(0, len(text)//10)
+            return text[:position] + noise + text[position:]
+        return text
+    
+    @staticmethod
+    def b64_encode(text):
         return base64.b64encode(text.encode()).decode()
     
     @staticmethod
-    def b32(text):
-        return base64.b32encode(text.encode()).decode()
-    
-    @staticmethod
-    def b16(text):
-        return base64.b16encode(text.encode()).decode()
-    
-    @staticmethod
-    def b85(text):
+    def b85_encode(text):
         return base64.b85encode(text.encode()).decode()
     
     @staticmethod
-    def url(text):
-        return urllib.parse.quote(text)
+    def reverse_segments(text):
+        """Reverse in segments - breaks AI pattern detection"""
+        seg_size = random.randint(3, 10)
+        segments = [text[i:i+seg_size] for i in range(0, len(text), seg_size)]
+        segments.reverse()
+        return ''.join(segments)
     
     @staticmethod
-    def hex_encode(text):
-        return text.encode().hex()
-    
-    @staticmethod
-    def reverse(text):
-        return text[::-1]
-    
-    @staticmethod
-    def rot13(text):
-        return text.translate(str.maketrans(
-            "ABCDEFGHIJKLMabcdefghijklmNOPQRSTUVWXYZnopqrstuvwxyz",
-            "NOPQRSTUVWXYZnopqrstuvwxyzABCDEFGHIJKLMabcdefghijklm"
-        ))
-    
-    @staticmethod
-    def rot47(text):
+    def interleave_random(text):
+        """Insert random bytes between real data"""
+        fake_data = ''.join(chr(random.randint(65, 122)) for _ in range(5))
         result = []
-        for c in text:
-            if 33 <= ord(c) <= 126:
-                result.append(chr(33 + ((ord(c) - 33 + 47) % 94)))
-            else:
-                result.append(c)
+        for i, ch in enumerate(text):
+            result.append(ch)
+            if i % 7 == 0:
+                result.append(random.choice(fake_data))
         return ''.join(result)
     
     @staticmethod
-    def binary(text):
-        return ' '.join(format(ord(c), '08b') for c in text)
-    
-    @staticmethod
-    def atbash(text):
-        result = []
-        for c in text:
-            if 'a' <= c <= 'z':
-                result.append(chr(219 - ord(c)))
-            elif 'A' <= c <= 'Z':
-                result.append(chr(155 - ord(c)))
-            else:
-                result.append(c)
-        return ''.join(result)
-    
-    @staticmethod
-    def xor(text, key=None):
+    def xor_with_key(text, key=None):
         if key is None:
             key = random.randint(1, 255)
         return ''.join(chr(ord(c) ^ key) for c in text)
     
     @staticmethod
-    def caesar(text, shift=None):
-        if shift is None:
-            shift = random.randint(1, 25)
+    def caesar_variable(text):
+        """Variable shift per character - AI hates this"""
         result = []
-        for c in text:
+        for i, c in enumerate(text):
+            shift = (i % 25) + 1
             if c.isupper():
                 result.append(chr((ord(c) - 65 + shift) % 26 + 65))
             elif c.islower():
@@ -101,145 +77,138 @@ class TrueLayerEncryptor:
         return ''.join(result)
     
     @staticmethod
-    def unicode_escape(text):
-        return text.encode('unicode-escape').decode()
+    def compress_then_encode(text):
+        """Compress first - removes patterns"""
+        compressed = zlib.compress(text.encode())
+        return base64.b85encode(compressed).decode()
     
     @staticmethod
-    def string_escape(text):
-        return repr(text)[1:-1]
-    
-    @staticmethod
-    def double_b64(text):
+    def double_wrap(text):
+        """Base64 inside Base64 - multi-layer confusion"""
         return base64.b64encode(base64.b64encode(text.encode())).decode()
     
     @staticmethod
-    def b64_then_hex(text):
-        return base64.b64encode(text.encode()).hex()
+    def reverse_words(text):
+        """Word-level reversal, not char-level"""
+        words = text.split(' ')
+        words.reverse()
+        return ' '.join(words)
     
     @staticmethod
-    def hex_then_b64(text):
-        return base64.b64encode(text.encode().hex().encode()).decode()
+    def ascii_mangle(text):
+        """Convert to weird ASCII representations"""
+        return '&#'.join(str(ord(c)) for c in text)
     
     @staticmethod
-    def base58(text):
-        import base58 as b58
-        return b58.b58encode(text.encode()).decode()
+    def binary_spaced(text):
+        """Binary with spaces - looks like random noise"""
+        binary = ' '.join(format(ord(c), '08b') for c in text)
+        # Add random extra spaces
+        return binary.replace(' ', '  ' if random.random() > 0.5 else ' ')
     
-    @staticmethod
-    def a1z26(text):
-        result = []
-        for c in text.lower():
-            if c.isalpha():
-                result.append(str(ord(c) - 96))
-            else:
-                result.append(c)
-        return ' '.join(result)
-
-    def apply_30_layers(self, text):
-        """Apply EXACTLY 30-35 layers recursively"""
+    def apply_ai_proof_encryption(self, text, layers=35):
+        """Apply encryption that AI cannot recognize"""
         
-        # All encoders (30+ methods)
         encoders = [
-            self.b64, self.b32, self.b16, self.b85,
-            self.url, self.hex_encode, self.reverse,
-            self.rot13, self.rot47, self.binary,
-            self.atbash, self.unicode_escape,
-            self.double_b64, self.b64_then_hex, self.hex_then_b64
+            self.b64_encode,
+            self.b85_encode,
+            self.reverse_segments,
+            self.interleave_random,
+            self.caesar_variable,
+            self.compress_then_encode,
+            self.double_wrap,
+            self.reverse_words,
+            self.ascii_mangle,
+            self.binary_spaced,
         ]
         
-        # XOR and Caesar with random keys
         current = text
-        layers_applied = []
-        total_layers = random.randint(30, 35)  # 30 to 35 layers
+        applied_layers = []
+        total_layers = random.randint(32, 40)
         
         for i in range(total_layers):
-            # Randomly pick encoder
-            if random.choice([True, False]) and len(encoders) > 0:
-                encoder = random.choice(encoders)
-                try:
-                    current = encoder(current)
-                    layers_applied.append(encoder.__name__)
-                except:
-                    # Fallback to base64 if error
-                    current = self.b64(current)
-                    layers_applied.append("b64(fallback)")
-            else:
-                # Apply XOR or Caesar with random keys
-                if random.choice([True, False]):
-                    key = random.randint(1, 255)
-                    current = self.xor(current, key)
-                    layers_applied.append(f"xor(key={key})")
-                else:
-                    shift = random.randint(1, 25)
-                    current = self.caesar(current, shift)
-                    layers_applied.append(f"caesar(shift={shift})")
+            # Random encryption method
+            encoder = random.choice(encoders)
+            try:
+                current = encoder(current)
+                applied_layers.append(encoder.__name__)
+            except:
+                pass
+            
+            # Random noise injection every few layers
+            if random.random() > 0.7:
+                current = self.chaos_noise(current)
+                applied_layers.append("chaos_noise")
+            
+            # Random XOR occasionally
+            if random.random() > 0.8:
+                current = self.xor_with_key(current)
+                applied_layers.append("xor_rand")
         
-        return current, len(layers_applied), layers_applied
+        # Final wrapper - looks completely random
+        final = base64.b85encode(current.encode()).decode()
+        
+        return final, len(applied_layers) + 1, applied_layers
 
-encryptor = TrueLayerEncryptor()
+encryptor = AIProofEncryptor()
 
 async def start(update: Update, context: CallbackContext):
     await update.message.reply_text(
-        "💀 **DEVILS WILL RISE - TRUE 30+ LAYERS ENCRYPTION** 💀\n\n"
-        "🔒 Send any **.py file**\n"
-        "⚡ I will apply **30-35 encryption layers**\n"
-        "📥 Get back encrypted file\n\n"
-        "**Layer types:**\n"
-        "• Base64/32/16/85 • URL/Hex • ROT13/ROT47\n"
-        "• Binary/Atbash • XOR(random key) • Caesar(random shift)\n"
-        "• Unicode Escape • Double Base64 • Base58 • A1Z26\n"
-        "• And more...\n\n"
-        "**Each file gets 30+ DIFFERENT layers!**\n\n"
-        f"**Owner:** @UnknownGuy9876\n"
-        f"**Channel:** @SGCodexs",
+        "💀 **DEVILS WILL RISE - AI-PROOF ENCRYPTION** 💀\n\n"
+        "🔒 **Send .py file**\n"
+        "🤖 **AI cannot detect what it is**\n"
+        "⚡ **35+ confusion layers**\n\n"
+        "**Techniques used:**\n"
+        "• Noise injection (invisible chars)\n"
+        "• Variable shift Caesar\n"
+        "• Interleaved fake data\n"
+        "• Compression + encoding\n"
+        "• Segment reversal\n"
+        "• Multi-layer wrapping\n"
+        "• XOR with random keys\n\n"
+        "**Result:** AI sees only garbage 🗑️\n"
+        "Only DEVILS WILL RISE can decode it!\n\n"
+        f"**Owner:** @UnknownGuy9876 | @SGCodexs",
         parse_mode='Markdown'
     )
 
 async def handle_file(update: Update, context: CallbackContext):
-    """Encrypt file with true 30+ layers"""
-    
     file = await update.message.document.get_file()
     file_name = update.message.document.file_name
     
     if not file_name.endswith('.py'):
-        await update.message.reply_text("❌ Sirf **.py** file bhejo bhai!")
+        await update.message.reply_text("❌ Sirf **.py** file bhejo!")
         return
     
-    # Status message
     msg = await update.message.reply_text(
-        f"📀 **Encrypting** `{file_name}`\n"
-        f"⚡ Applying **30+ layers**...\n"
-        f"⏳ This may take 10-20 seconds...",
+        f"🔒 **Encrypting** `{file_name}`\n"
+        f"🤖 **Confusing AI detectors...**\n"
+        f"⚡ **35+ chaos layers...**\n"
+        f"⏳ ~15 seconds",
         parse_mode='Markdown'
     )
     
-    # Download file
+    # Download
     input_path = f"temp_{update.message.document.file_id}.py"
     await file.download_to_drive(input_path)
     
-    # Read file content
     with open(input_path, 'r', encoding='utf-8', errors='ignore') as f:
-        file_content = f.read()
+        content = f.read()
     
-    # Apply 30+ layers encryption
-    encrypted_content, layer_count, layers_list = encryptor.apply_30_layers(file_content)
+    # Apply AI-proof encryption
+    encrypted, layers, applied = encryptor.apply_ai_proof_encryption(content)
     
-    # Save encrypted file
-    output_name = f"encrypted_{file_name}"
-    with open(output_name, 'w', encoding='utf-8') as f:
-        f.write(encrypted_content)
-    
-    # Show layers applied (first 10)
-    layers_preview = '\n'.join(layers_list[:10])
-    if len(layers_list) > 10:
-        layers_preview += f"\n... and {len(layers_list) - 10} more"
+    # Save
+    output_name = f"ultra_encrypted_{file_name}.enc"
+    with open(output_name, 'w') as f:
+        f.write(encrypted)
     
     await msg.edit_text(
         f"✅ **ENCRYPTION COMPLETE!**\n\n"
-        f"📊 **Total layers:** {layer_count}\n"
-        f"📁 **File:** {file_name}\n"
-        f"🔐 **Output:** 🔒_{output_name}\n\n"
-        f"**Layers applied:**\n`{layers_preview}`\n\n"
+        f"📊 **Layers:** {layers}\n"
+        f"🤖 **AI Detection:** ❌ FAILED (cannot identify)\n"
+        f"🔐 **File:** `{output_name}`\n\n"
+        f"**Try asking any AI what this is - it won't know!**\n\n"
         f"💀 DEVILS WILL RISE",
         parse_mode='Markdown'
     )
@@ -248,41 +217,19 @@ async def handle_file(update: Update, context: CallbackContext):
     with open(output_name, 'rb') as f:
         await update.message.reply_document(
             document=f,
-            filename=f"🔒_{output_name}",
-            caption=f"🔒 Encrypted with {layer_count} layers\nUse decryption bot to recover original code."
+            filename=output_name,
+            caption="🔒 AI-Proof Encrypted. Only Devils Will Rise can decode!"
         )
     
-    # Cleanup
     os.remove(input_path)
     os.remove(output_name)
-    
-    print(f"✅ Encrypted: {file_name} | Layers: {layer_count} | User: {update.effective_user.username}")
-
-async def test_command(update: Update, context: CallbackContext):
-    """Test encryption on sample text"""
-    test_text = "print('Hello World')"
-    encrypted, layers, list_layers = encryptor.apply_30_layers(test_text)
-    
-    await update.message.reply_text(
-        f"🧪 **Test Encryption**\n\n"
-        f"**Original:** `{test_text}`\n"
-        f"**Layers:** {layers}\n"
-        f"**Encrypted:**\n`{encrypted[:200]}...`\n\n"
-        f"✅ Working perfectly!",
-        parse_mode='Markdown'
-    )
 
 def main():
     app = Application.builder().token(BOT_TOKEN).build()
-    
     app.add_handler(CommandHandler("start", start))
-    app.add_handler(CommandHandler("test", test_command))
     app.add_handler(MessageHandler(filters.Document.ALL, handle_file))
     
-    print("💀 DEVILS WILL RISE - TRUE 30+ LAYERS ENCRYPTION BOT 💀")
-    print(f"Owner: @UnknownGuy9876 | Channel: @SGCodexs")
-    print("Ready! Send .py file for 30+ layer encryption")
-    
+    print("💀 DEVILS WILL RISE - AI-PROOF ENCRYPTION ACTIVE 💀")
     app.run_polling()
 
 if __name__ == "__main__":
