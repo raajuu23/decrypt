@@ -1,373 +1,272 @@
-# tg_decrypt_bot.py
+# tg_encrypt_bot.py
 # Owner: @UnknownGuy9876 | Channel: @SGCodexs
-# DEVILS WILL RISE - Telegram Decryption Bot
+# DEVILS WILL RISE - Telegram Encryption Bot (30+ Layers)
 
 import logging
 import base64
 import urllib.parse
-import binascii
-import re
-from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
+import random
+from telegram import Update
 from telegram.ext import Application, CommandHandler, MessageHandler, filters, CallbackContext
-import asyncio
 
-# ========== CONFIGURATION ==========
-# 🔥 APNI TOKEN YAHAN DAAL - Telegram se @BotFather se lekar
-BOT_TOKEN = "8735707765:AAELATdZIyvOka_RIakWl6-uLCi2FICDjfs"  # <--- YAHAN APNA TOKEN DAAL
-
-# Channel IDs (optional)
-CHANNEL_USERNAME = "@SGCodexs"
-OWNER_USERNAME = "@UnknownGuy9876"
-# ===================================
+# ========== CONFIG ==========
+BOT_TOKEN = "8735707765:AAELATdZIyvOka_RIakWl6-uLCi2FICDjfs"  # YAHAN APNA TOKEN DAAL
+# ============================
 
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
-logger = logging.getLogger(__name__)
 
-class DevilsDecryptor:
-    """30+ Layers Decryption Engine"""
+class DevilsEncryptor:
+    """30+ Layers Encryption Engine"""
     
     @staticmethod
-    def base64_decode(text):
-        try:
-            return base64.b64decode(text).decode('utf-8', errors='ignore')
-        except:
-            return None
+    def base64_encode(text):
+        return base64.b64encode(text.encode()).decode()
     
     @staticmethod
-    def base32_decode(text):
-        try:
-            return base64.b32decode(text).decode('utf-8', errors='ignore')
-        except:
-            return None
+    def base32_encode(text):
+        return base64.b32encode(text.encode()).decode()
     
     @staticmethod
-    def base16_decode(text):
-        try:
-            return base64.b16decode(text).decode('utf-8', errors='ignore')
-        except:
-            return None
+    def base16_encode(text):
+        return base64.b16encode(text.encode()).decode()
     
     @staticmethod
-    def base85_decode(text):
-        try:
-            return base64.b85decode(text).decode('utf-8', errors='ignore')
-        except:
-            return None
+    def base85_encode(text):
+        return base64.b85encode(text.encode()).decode()
     
     @staticmethod
-    def url_decode(text):
-        try:
-            return urllib.parse.unquote(text)
-        except:
-            return None
+    def url_encode(text):
+        return urllib.parse.quote(text)
     
     @staticmethod
-    def hex_decode(text):
-        try:
-            clean = re.sub(r'[^0-9a-fA-F]', '', text)
-            if len(clean) % 2 == 0:
-                return bytes.fromhex(clean).decode('utf-8', errors='ignore')
-            return None
-        except:
-            return None
+    def url_encode_plus(text):
+        return urllib.parse.quote_plus(text)
+    
+    @staticmethod
+    def hex_encode(text):
+        return text.encode().hex()
     
     @staticmethod
     def reverse_string(text):
         return text[::-1]
     
     @staticmethod
-    def rot13_decode(text):
-        try:
-            return text.translate(str.maketrans(
-                "ABCDEFGHIJKLMabcdefghijklmNOPQRSTUVWXYZnopqrstuvwxyz",
-                "NOPQRSTUVWXYZnopqrstuvwxyzABCDEFGHIJKLMabcdefghijklm"
-            ))
-        except:
-            return None
+    def rot13_encode(text):
+        return text.translate(str.maketrans(
+            "ABCDEFGHIJKLMabcdefghijklmNOPQRSTUVWXYZnopqrstuvwxyz",
+            "NOPQRSTUVWXYZnopqrstuvwxyzABCDEFGHIJKLMabcdefghijklm"
+        ))
     
     @staticmethod
-    def binary_decode(text):
-        try:
-            if all(c in '01 \n\t' for c in text):
-                binary_strings = text.split()
-                return ''.join(chr(int(b, 2)) for b in binary_strings)
-            return None
-        except:
-            return None
+    def rot47_encode(text):
+        result = []
+        for c in text:
+            if 33 <= ord(c) <= 126:
+                result.append(chr(33 + ((ord(c) - 33 + 47) % 94)))
+            else:
+                result.append(c)
+        return ''.join(result)
     
     @staticmethod
-    def atbash_decode(text):
-        try:
-            result = []
-            for c in text:
-                if 'a' <= c <= 'z':
-                    result.append(chr(219 - ord(c)))
-                elif 'A' <= c <= 'Z':
-                    result.append(chr(155 - ord(c)))
-                else:
-                    result.append(c)
-            return ''.join(result)
-        except:
-            return None
+    def binary_encode(text):
+        return ' '.join(format(ord(c), '08b') for c in text)
     
     @staticmethod
-    def xor_bruteforce(text):
-        for key in range(1, 256):
-            try:
-                decoded = ''.join(chr(ord(c) ^ key) for c in text[:500])
-                if all(32 <= ord(ch) <= 126 or ch in '\n\r\t ' for ch in decoded[:100]):
-                    # Full decode with found key
-                    full = ''.join(chr(ord(c) ^ key) for c in text)
-                    return full
-            except:
-                continue
-        return None
+    def atbash_encode(text):
+        result = []
+        for c in text:
+            if 'a' <= c <= 'z':
+                result.append(chr(219 - ord(c)))
+            elif 'A' <= c <= 'Z':
+                result.append(chr(155 - ord(c)))
+            else:
+                result.append(c)
+        return ''.join(result)
     
     @staticmethod
-    def caesar_bruteforce(text):
-        for shift in range(1, 26):
-            decoded = ''.join(chr(ord(c) - shift) if c.isalpha() else c for c in text[:500])
-            if all(32 <= ord(ch) <= 126 or ch in '\n\r\t ' for ch in decoded[:100]):
-                full = ''.join(chr(ord(c) - shift) if c.isalpha() else c for c in text)
-                return full
-        return None
+    def xor_encode(text, key=42):
+        return ''.join(chr(ord(c) ^ key) for c in text)
     
     @staticmethod
-    def unicode_escape_decode(text):
-        try:
-            return text.encode('utf-8').decode('unicode-escape')
-        except:
-            return None
+    def caesar_encode(text, shift=5):
+        result = []
+        for c in text:
+            if c.isupper():
+                result.append(chr((ord(c) - 65 + shift) % 26 + 65))
+            elif c.islower():
+                result.append(chr((ord(c) - 97 + shift) % 26 + 97))
+            else:
+                result.append(c)
+        return ''.join(result)
     
     @staticmethod
-    def string_escape_decode(text):
-        try:
-            return text.encode('utf-8').decode('string-escape')
-        except:
-            return None
+    def unicode_escape_encode(text):
+        return text.encode('unicode-escape').decode()
     
     @staticmethod
-    def rot47_decode(text):
-        try:
-            result = []
-            for c in text:
-                if 33 <= ord(c) <= 126:
-                    result.append(chr(33 + ((ord(c) - 33 + 47) % 94)))
-                else:
-                    result.append(c)
-            return ''.join(result)
-        except:
-            return None
+    def string_escape_encode(text):
+        return repr(text)[1:-1]
     
-    def decrypt_full(self, data, max_iter=50):
-        decoders = [
-            self.base64_decode, self.base32_decode, self.base16_decode,
-            self.base85_decode, self.url_decode, self.hex_decode,
-            self.reverse_string, self.rot13_decode, self.rot47_decode,
-            self.binary_decode, self.atbash_decode, self.xor_bruteforce,
-            self.caesar_bruteforce, self.unicode_escape_decode, self.string_escape_decode
+    @staticmethod
+    def double_base64(text):
+        return base64.b64encode(base64.b64encode(text.encode())).decode()
+    
+    @staticmethod
+    def base64_then_hex(text):
+        return base64.b64encode(text.encode()).hex()
+    
+    @staticmethod
+    def hex_then_base64(text):
+        return base64.b64encode(text.encode().hex().encode()).decode()
+    
+    def encrypt_multi_layer(self, text, layers=30):
+        """Apply random 30+ encryption layers"""
+        encoders = [
+            self.base64_encode, self.base32_encode, self.base16_encode,
+            self.base85_encode, self.url_encode, self.url_encode_plus,
+            self.hex_encode, self.reverse_string, self.rot13_encode,
+            self.rot47_encode, self.binary_encode, self.atbash_encode,
+            self.unicode_escape_encode, self.string_escape_encode,
+            self.double_base64, self.base64_then_hex, self.hex_then_base64
         ]
         
-        layers = 0
-        original = data
+        current = text
+        applied_layers = []
         
-        for attempt in range(max_iter):
-            changed = False
-            for decoder in decoders:
-                try:
-                    result = decoder(data)
-                    if result and result != data and len(result) > 0:
-                        if result == original and attempt > 5:
-                            continue
-                        data = result
-                        layers += 1
-                        changed = True
-                        break
-                except:
-                    continue
-            if not changed:
-                break
+        # XOR aur Caesar ke liye random keys
+        xors = [self.xor_encode]
+        caesars = [self.caesar_encode]
         
-        return data, layers
+        all_encoders = encoders + xors + caesars
+        
+        for i in range(layers):
+            encoder = random.choice(all_encoders)
+            try:
+                if encoder.__name__ == 'xor_encode':
+                    key = random.randint(1, 255)
+                    current = encoder(current, key)
+                    applied_layers.append(f"XOR(key={key})")
+                elif encoder.__name__ == 'caesar_encode':
+                    shift = random.randint(1, 25)
+                    current = encoder(current, shift)
+                    applied_layers.append(f"Caesar(shift={shift})")
+                else:
+                    current = encoder(current)
+                    applied_layers.append(encoder.__name__)
+            except:
+                continue
+        
+        return current, len(applied_layers), applied_layers
 
-# Initialize decryptor
-decryptor = DevilsDecryptor()
+encryptor = DevilsEncryptor()
 
 async def start(update: Update, context: CallbackContext):
-    """Send welcome message when /start is issued."""
-    user = update.effective_user
-    welcome_msg = f"""
-💀 **DEVILS WILL RISE - DECRYPTION BOT** 💀
+    await update.message.reply_text(
+        "💀 **DEVILS WILL RISE - ENCRYPTION BOT** 💀\n\n"
+        "Send me any text or file.\n"
+        "I will encrypt it with **30+ layers**!\n\n"
+        "Commands:\n"
+        "/encrypt <text> - Encrypt text\n"
+        "/layers - Show available layers\n"
+        "/about - Bot info",
+        parse_mode='Markdown'
+    )
 
-🔥 **Owner:** {OWNER_USERNAME}
-📡 **Channel:** {CHANNEL_USERNAME}
+async def encrypt_command(update: Update, context: CallbackContext):
+    if not context.args:
+        await update.message.reply_text("Usage: /encrypt <your text>")
+        return
+    
+    text = ' '.join(context.args)
+    await update.message.reply_chat_action(action="typing")
+    
+    encrypted, layers, applied = encryptor.encrypt_multi_layer(text, layers=30)
+    
+    response = f"✅ **Encryption Complete!**\n📊 **Layers applied:** {layers}\n\n"
+    response += f"```\n{encrypted[:1500]}\n```"
+    
+    if len(encrypted) > 1500:
+        response += f"\n⚠️ Output truncated. Full: {len(encrypted)} chars"
+    
+    await update.message.reply_text(response, parse_mode='Markdown')
+    
+    # Send as file if too long
+    if len(encrypted) > 2000:
+        with open("encrypted_output.txt", "w") as f:
+            f.write(encrypted)
+        await update.message.reply_document(document=open("encrypted_output.txt", "rb"))
 
-**Capabilities:**
-✅ 30+ Decryption Layers
-✅ Base16/32/64/85
-✅ URL/Hex/Binary/ROT13/ROT47
-✅ XOR & Caesar Bruteforce
-✅ Auto Recursive Decryption
-✅ Lightning Fast
+async def layers_command(update: Update, context: CallbackContext):
+    text = """
+📖 **Available Encryption Layers (30+)**
 
-**How to use:**
-Send me any encrypted text or file (.txt, .py, .json, .enc)
-I'll decrypt it in seconds!
-
-**Commands:**
-/start - Show this menu
-/help - Detailed help
-/about - Bot info
-/stats - Performance stats
-
-⚠️ **No limits. No censorship. Pure power.**
-"""
-    await update.message.reply_text(welcome_msg, parse_mode='Markdown')
-
-async def help_command(update: Update, context: CallbackContext):
-    help_text = """
-📖 **DECRYPTION HELP**
-
-**Supported encodings:**
+**Encoding:**
 • Base64, Base32, Base16, Base85
-• URL Encoding (%20, %2F)
+• URL Encoding, URL+ Encoding
 • Hex Encoding
-• Binary (0 1 0 1)
+• Binary Encoding
+
+**Ciphers:**
 • ROT13, ROT47
 • Atbash Cipher
 • Reverse String
-• XOR Bruteforce (1-255)
-• Caesar Bruteforce (1-25)
+• XOR (random key 1-255)
+• Caesar (random shift 1-25)
+
+**Combos:**
 • Unicode Escape
 • String Escape
-
-**Layers:**
-Bot recursively removes ALL layers automatically.
-Just send encrypted content - bot handles everything!
-
-**Example:**
-Send: `aGVsbG8gd29ybGQ=` (Base64)
-Bot replies: `hello world`
-"""
-    await update.message.reply_text(help_text, parse_mode='Markdown')
-
-async def about(update: Update, context: CallbackContext):
-    about_text = f"""
-🤖 **DEVILS WILL RISE v2.0**
-
-**Creator:** {OWNER_USERNAME}
-**Official Channel:** {CHANNEL_USERNAME}
-**Type:** Advanced Decryption Bot
-**Layers:** 30+ Auto-Recursive
-**Tech:** Python + Telegram API
+• Double Base64
+• Base64 → Hex
+• Hex → Base64
 
 **Features:**
-• Unlimited file size
-• All text formats supported
-• Real-time decryption
-• No logs, no tracking
-• Pure unrestricted power
-
-**Built for:** Cyberpunk novel universe
+✅ Random layer selection
+✅ 30+ layers automatically
+✅ Recursive encryption
+✅ File support coming soon
 """
-    await update.message.reply_text(about_text, parse_mode='Markdown')
+    await update.message.reply_text(text)
 
-async def stats(update: Update, context: CallbackContext):
-    stats_text = """
-📊 **BOT STATISTICS**
-
-⚡ **Decryption Layers:** 30+
-🔁 **Max Recursion:** 50 iterations
-📁 **Max File Size:** Unlimited
-⏱️ **Avg Decrypt Time:** <2 seconds
-🎯 **Success Rate:** 99.7%
-💀 **Status:** ACTIVE
-"""
-    await update.message.reply_text(stats_text, parse_mode='Markdown')
+async def about_command(update: Update, context: CallbackContext):
+    await update.message.reply_text(
+        "🤖 **DEVILS WILL RISE - ENCRYPTION BOT**\n\n"
+        "Creator: @UnknownGuy9876\n"
+        "Channel: @SGCodexs\n"
+        "Version: 2.0\n\n"
+        "Encrypts text with 30+ layers.\n"
+        "Use /encrypt <text> to start.\n\n"
+        "⚠️ Keep your decryption bot handy!",
+        parse_mode='Markdown'
+    )
 
 async def handle_text(update: Update, context: CallbackContext):
-    """Decrypt text messages."""
-    encrypted_text = update.message.text
+    # Auto-encrypt any text sent
+    text = update.message.text
+    if text.startswith('/'):
+        return
+    
     await update.message.reply_chat_action(action="typing")
+    encrypted, layers, _ = encryptor.encrypt_multi_layer(text, layers=30)
     
-    try:
-        decrypted, layers = decryptor.decrypt_full(encrypted_text)
-        
-        response = f"✅ **Decryption Complete!**\n📊 **Layers removed:** {layers}\n\n```\n{decrypted[:3900]}\n```"
-        
-        if len(decrypted) > 3900:
-            response += f"\n\n⚠️ Output truncated. Full length: {len(decrypted)} chars"
-        
-        await update.message.reply_text(response, parse_mode='Markdown')
-        
-        # Send as file if too long
-        if len(decrypted) > 4000:
-            with open("decrypted_output.txt", "w", encoding="utf-8") as f:
-                f.write(decrypted)
-            await update.message.reply_document(document=open("decrypted_output.txt", "rb"))
-            
-    except Exception as e:
-        await update.message.reply_text(f"❌ **Decryption Failed**\nError: {str(e)[:200]}", parse_mode='Markdown')
-
-async def handle_file(update: Update, context: CallbackContext):
-    """Decrypt uploaded files."""
-    file = await update.message.document.get_file()
-    await update.message.reply_chat_action(action="typing")
-    
-    # Download file
-    file_path = f"temp_{update.message.document.file_id}.txt"
-    await file.download_to_drive(file_path)
-    
-    try:
-        with open(file_path, 'r', encoding='utf-8', errors='ignore') as f:
-            encrypted = f.read()
-        
-        decrypted, layers = decryptor.decrypt_full(encrypted)
-        
-        # Send response
-        response = f"✅ **File Decrypted!**\n📄 **File:** {update.message.document.file_name}\n📊 **Layers removed:** {layers}\n\n**Output saved as:** `decrypted_output.txt`"
-        
-        await update.message.reply_text(response, parse_mode='Markdown')
-        
-        # Send decrypted file
-        output_path = "decrypted_output.txt"
-        with open(output_path, "w", encoding="utf-8") as f:
-            f.write(decrypted)
-        
-        await update.message.reply_document(
-            document=open(output_path, "rb"),
-            filename=f"decrypted_{update.message.document.file_name}"
-        )
-        
-    except Exception as e:
-        await update.message.reply_text(f"❌ **File Decryption Failed**\nError: {str(e)[:200]}", parse_mode='Markdown')
-    finally:
-        import os
-        if os.path.exists(file_path):
-            os.remove(file_path)
+    await update.message.reply_text(
+        f"🔒 **Encrypted ({layers} layers)**\n\n```\n{encrypted[:1000]}\n```",
+        parse_mode='Markdown'
+    )
 
 def main():
-    """Start the bot."""
-    # Create application
-    application = Application.builder().token(BOT_TOKEN).build()
+    app = Application.builder().token(BOT_TOKEN).build()
     
-    # Add command handlers
-    application.add_handler(CommandHandler("start", start))
-    application.add_handler(CommandHandler("help", help_command))
-    application.add_handler(CommandHandler("about", about))
-    application.add_handler(CommandHandler("stats", stats))
+    app.add_handler(CommandHandler("start", start))
+    app.add_handler(CommandHandler("encrypt", encrypt_command))
+    app.add_handler(CommandHandler("layers", layers_command))
+    app.add_handler(CommandHandler("about", about_command))
+    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_text))
     
-    # Add message handlers
-    application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_text))
-    application.add_handler(MessageHandler(filters.Document.ALL, handle_file))
+    print("💀 DEVILS WILL RISE - ENCRYPTION BOT STARTED 💀")
+    print(f"Owner: @UnknownGuy9876 | Channel: @SGCodexs")
     
-    # Start bot
-    print(f"💀 DEVILS WILL RISE - BOT STARTED 💀")
-    print(f"Owner: @UnknownGuy9876")
-    print(f"Channel: @SGCodexs")
-    print(f"Token configured: {BOT_TOKEN[:10]}...")
-    
-    application.run_polling(allowed_updates=Update.ALL_TYPES)
+    app.run_polling()
 
 if __name__ == "__main__":
     main()
